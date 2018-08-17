@@ -124,13 +124,24 @@ contract OrderValidator {
         address assetProxy = EXCHANGE.getAssetProxy(assetProxyId);
 
         if (assetProxyId == ERC20_DATA_ID) {
+            // Query balance
             balance = IERC20Token(token).balanceOf(target);
+
+            // Query allowance
             allowance = IERC20Token(token).allowance(target, assetProxy);
         } else if (assetProxyId == ERC721_DATA_ID) {
             uint256 tokenId = assetData.readUint256(36);
+
+            // Query owner of tokenId
             address owner = IERC721Token(token).ownerOf(tokenId);
+
+            // Set balance to 1 if tokenId is owned by target
             balance = target == owner ? 1 : 0;
+
+            // Check if ERC721Proxy is approved to spend tokenId
             bool isApproved = IERC721Token(token).isApprovedForAll(target, assetProxy) || IERC721Token(token).getApproved(tokenId) == assetProxy;
+            
+            // Set alowance to 1 if ERC721Proxy is approved to spend tokenId
             allowance = isApproved ? 1 : 0;
         } else {
             revert("UNSUPPORTED_ASSET_PROXY");
